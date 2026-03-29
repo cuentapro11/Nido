@@ -14,6 +14,7 @@ export default function ChildProfile() {
   const navigate = useNavigate();
   const { children, role, updateChild, addNotification, aulas, aulaAsignaciones } = useApp();
   const [showFab, setShowFab] = useState(false);
+  const [showNoEntry, setShowNoEntry] = useState(false);
   const [showPhone, setShowPhone] = useState(false);
   const [showInfo, setShowInfo] = useState(false);
   const [showExpediente, setShowExpediente] = useState(false);
@@ -104,9 +105,9 @@ export default function ChildProfile() {
   };
 
   const actions = [
-    ...(canLogActivity ? [{ icon: <Palette size={19} className="text-white" />, label: 'Actividad', fn: () => setShowFab(true), gradient: 'from-[hsl(240,60%,62%)] to-[hsl(240,70%,52%)]' }] : []),
-    { icon: <Phone size={19} className="text-white" />, label: 'Llamar', fn: () => setShowPhone(true), gradient: 'from-[hsl(152,55%,45%)] to-[hsl(158,60%,38%)]' },
-    { icon: <Info size={19} className="text-white" />, label: 'Información', fn: () => setShowInfo(true), gradient: 'from-[hsl(35,80%,55%)] to-[hsl(28,85%,48%)]' },
+    ...(canLogActivity ? [{ icon: <Palette size={24} strokeWidth={1.5} />, label: 'Actividad',    fn: () => child.present ? setShowFab(true) : setShowNoEntry(true),    color: 'hsl(240,60%,62%)' }] : []),
+    { icon: <Phone size={24} strokeWidth={1.5} />,  label: 'Llamar',       fn: () => setShowPhone(true), color: 'hsl(152,55%,45%)' },
+    { icon: <Info  size={24} strokeWidth={1.5} />,  label: 'Información',  fn: () => setShowInfo(true),  color: 'hsl(35,80%,55%)'  },
   ];
 
   // ── Helper: section title (matches ParentProfile SectionHeader) ──
@@ -307,8 +308,8 @@ export default function ChildProfile() {
       <div className="flex border-b border-border bg-card py-2.5 px-2">
         {actions.map(a => (
           <button key={a.label} onClick={a.fn} className="flex-1 flex flex-col items-center gap-1.5 active:scale-95 transition-transform">
-            <div className={`w-11 h-11 rounded-2xl bg-gradient-to-br ${a.gradient} flex items-center justify-center shadow-soft`}>{a.icon}</div>
-            <span className="text-[10px] font-bold text-muted-foreground leading-tight text-center">{a.label}</span>
+            <span style={{ color: a.color }}>{a.icon}</span>
+            <span className="text-[10px] font-medium text-muted-foreground leading-tight text-center">{a.label}</span>
           </button>
         ))}
       </div>
@@ -472,6 +473,35 @@ export default function ChildProfile() {
       </BottomSheet>
 
       <ActivityModal open={showFab} onClose={() => setShowFab(false)} preselectedChildId={cid} />
+
+      {/* Aviso: niño sin entrada */}
+      <AnimatePresence>
+        {showNoEntry && (
+          <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}
+            className="fixed inset-0 z-50 bg-foreground/50 flex items-center justify-center px-6"
+            onClick={() => setShowNoEntry(false)}>
+            <motion.div initial={{ scale: 0.92, opacity: 0 }} animate={{ scale: 1, opacity: 1 }}
+              exit={{ scale: 0.92, opacity: 0 }} onClick={e => e.stopPropagation()}
+              className="w-full max-w-sm bg-card rounded-3xl p-6 shadow-float">
+              <div className="flex flex-col items-center text-center">
+                <div className="w-14 h-14 rounded-full bg-amber-100 flex items-center justify-center mb-3">
+                  <span className="text-2xl">🚪</span>
+                </div>
+                <h3 className="font-extrabold text-foreground text-lg">Sin entrada registrada</h3>
+                <p className="text-sm text-muted-foreground mt-2 leading-relaxed">
+                  <span className="font-semibold text-foreground">{child.name.split(' ')[0]}</span> no tiene entrada registrada hoy.
+                  Registra la entrada primero para poder agregar actividades.
+                </p>
+              </div>
+              <button onClick={() => setShowNoEntry(false)}
+                className="w-full bg-primary text-primary-foreground font-bold py-3.5 rounded-2xl text-sm mt-5 active:scale-[0.98]">
+                Entendido
+              </button>
+            </motion.div>
+          </motion.div>
+        )}
+      </AnimatePresence>
+
       <ExpedienteScreen />
     </div>
   );
